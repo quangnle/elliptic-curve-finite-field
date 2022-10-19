@@ -1,0 +1,34 @@
+<html>
+	<head>
+		<script src="p5lib/p5.min.js"></script>
+		<script src="finite_ec.js"></script>
+		<script src="sketch.js"></script>
+		<script>
+		const w = 800;
+		const h = 800;
+		var ec = new FiniteEC(-1,0,7,w,h);
+		function drawClick(){
+			const a = +document.getElementById("inpA").value;
+			const b = +document.getElementById("inpB").value;
+			const r = +document.getElementById("inpR").value;
+
+			ec= new FiniteEC(a,b,r,w,h);
+		}
+		</script>	
+	</head>
+	<body>
+		<div>
+			<p>Elliptic Curve equation: y^2 = x^3 + ax + b (mod r, with r is a prime number)</p>
+			<input id="inpA" value="-1" placeholder="a" />	
+			<input id="inpB" value="0" placeholder="b" />
+			<input id="inpR" value="7" placeholder="r" />
+			<button onClick="drawClick()">Draw</button>
+		</div>
+		<div>
+			<textarea id="inpSG" readonly style="width:800px">
+			</textarea>
+		</div>
+		<div id="sketch-holder" style="width: 50%; float: left">
+		</div>
+	</body>
+</html>
