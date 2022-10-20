@@ -9,6 +9,7 @@ function draw() {
 
 function mouseClicked() {
   ec.mouseClicked(mouseX, mouseY);
+
   if (ec.selectedIndex != -1) {
     const sgInp = document.getElementById("inpSG");
     const sg = ec.getSubGroup(ec.points[ec.selectedIndex]);
@@ -23,4 +24,8 @@ function mouseClicked() {
     });
     sgInp.value = st;
   }
+}
+
+function mouseMoved() {
+  ec.mouseMoved(mouseX, mouseY);
 }

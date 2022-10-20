@@ -2,6 +2,7 @@ var FiniteEC = function (a, b, r, w, h) {
 	this.a = a, this.b = b, this.r = r, this.w = w, this.h = h;
 	this.points = [];
 	this.selectedIndex = -1;
+	this.hoveredIndex= -1;
 	
 	// calculate points
 	for (let i=0; i<this.r; i++){
@@ -23,13 +24,15 @@ var FiniteEC = function (a, b, r, w, h) {
 
 	this.add = function(p1, p2) {
 		let lambda;
-		if (p1.x == p2.x && p1.y == p2.y) lambda = (3*p1.x*p1.x + this.a)*this.inverse(2*p1.y, this.r);
+		if (p1.x == p2.x && p1.y == p2.y) lambda = (3*p1.x*p1.x + this.a)*this.inverse((2*p1.y) % this.r, this.r);
 		else lambda = (p1.y - p2.y)*this.inverse(p1.x - p2.x, this.r);
 		let xr = lambda*lambda - p1.x - p2.x;
-		let yr = lambda*(p1.x - xr) - p1.y;
 		if (xr < 0 && xr > -Infinity) xr = this.r - (-xr % this.r);
+		xr = xr % this.r;
+		let yr = lambda*(p1.x - xr) - p1.y;
 		if (yr < 0 && yr > -Infinity) yr = this.r - (-yr % this.r);
-		return {x: xr % this.r, y: yr % this.r};
+		yr = yr % this.r;
+		return {x: xr, y: yr};
 	}
 
 	this.mul = function(p, k) {
@@ -42,12 +45,72 @@ var FiniteEC = function (a, b, r, w, h) {
 
 	this.getSubGroup = function(p) {
 		const subGrp = [];
-		for(let i=0; i<=this.r; i++){
+		for(let i=0; i<=this.points.length; i++){
 			const q = this.mul(p, i+1);
 			subGrp.push(q);
 			if (isNaN(q.x) && isNaN(q.y)) break;
 		}
 		return subGrp;
+	}
+
+	this.getGPoint = function() {
+		if (this.a == 0 && this.b != 0 && (this.r%3==2)){
+			for (let i=0; i<this.points.length; i++){
+				const sg = this.getSubGroup(this.points[i]);
+				if (sg.length == this.r + 1) return this.points[i];
+			}
+			return null;
+		}
+		return null;
+	}
+
+	this.sign = function(m, dA) {
+		const G = this.getGPoint();
+		if (G == null) return null;
+		const n = this.r + 1;
+		const z = m % n;		
+		do {
+			const k = Math.floor(Math.random() * (n-2)) + 1;
+			const kG = this.mul(G, k);
+			if (kG.x == 0) continue;
+			const r = kG.x;
+			const s = (this.inverse(k, n)*(z + r*dA)) % n;
+			if (s != 0) return {r, s};
+		} while(true);
+	}
+
+	this.recoverPK = function(m,r,s) {
+		const G = this.getGPoint();
+		if (G == null) return null;
+		const x1 = r;
+		const y2 = (r*r*r + this.a*r + this.b) % this.r;
+		let y1;
+		for (let i=0; i< this.r; i++){
+			if ((i*i % this.r) == y2) y=i;
+		}
+		const R = {x: x1, y:y1};
+		const n = this.r + 1;
+		const z = m % n;	
+		const u1 = (n -(-z * this.inverse(r, n))) % n;
+		const u2 = s * this.inverse(r, n);
+		const u1G = this.mul(G, u1);
+		const u2R = this.mul(R, u2);
+		const QA = this.add(u1G, u2R);
+		return QA;
+	}
+
+	this.verify = function (m,r,s) {
+		const G = this.getGPoint();
+		if (G == null) return null;
+		const QA = this.recoverPK(m,r,s);
+		const n = this.r + 1;
+		const z = m % n;
+		const u1 = z*this.inverse(s, n);
+		const u2 = r * this.inverse(s, n);
+		const u1G = this.mul(G, u1);
+		const u2QA = this.mul(QA, u2);
+		const S = this.add(u1G, u2QA);
+		return r == S.x;
 	}
 	
 	this.draw = function() {
@@ -55,7 +118,7 @@ var FiniteEC = function (a, b, r, w, h) {
 		const yMargin = 20;
 		const xStep = (this.w - xMargin) / this.r;
 		const yStep = (this.h - yMargin) / this.r;
-		
+		textSize(8);
 		// origin
 		noStroke();
 		fill(0);
@@ -94,6 +157,13 @@ var FiniteEC = function (a, b, r, w, h) {
 
 		// ec points
 		for (let i=0; i<this.points.length; i++){
+			if (i == this.hoveredIndex) {
+				fill("#00a");
+				ellipse(this.points[i].x * xStep + xMargin, (this.r - this.points[i].y) * yStep, 8, 8);
+				fill(0)
+				text(`(${this.points[i].x},${this.points[i].y})`,this.points[i].x * xStep + xMargin + 5, (this.r - this.points[i].y) * yStep);
+			}
+
 			if (i != this.selectedIndex) {
 				fill("#0f0");
 				ellipse(this.points[i].x * xStep + xMargin, (this.r - this.points[i].y) * yStep, 8, 8);
@@ -113,10 +183,25 @@ var FiniteEC = function (a, b, r, w, h) {
 		const yStep = (this.h - yMargin) / this.r;
 		for (let i=0; i<this.points.length; i++){
 			fill("#0f0");
-			const px = this.points[i].x * xStep + xMargin;
+			const px = this.points[i].x * xStep + xMargin;2
 			const py = (this.r - this.points[i].y) * yStep;
 			const d = Math.sqrt((mx - px)**2 + (my - py)**2)
 			if (d < 5) this.selectedIndex = i;
+		}		
+	}
+
+	this.mouseMoved = function(mx, my) {
+		const xMargin = 20;		
+		const yMargin = 20;
+		const xStep = (this.w - xMargin) / this.r;
+		const yStep = (this.h - yMargin) / this.r;
+		this.hoveredIndex= -1;
+		for (let i=0; i<this.points.length; i++){
+			fill("#0f0");
+			const px = this.points[i].x * xStep + xMargin;
+			const py = (this.r - this.points[i].y) * yStep;
+			const d = Math.sqrt((mx - px)**2 + (my - py)**2)
+			if (d < 5) this.hoveredIndex = i;
 		}		
 	}
 }
