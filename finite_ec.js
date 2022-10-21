@@ -53,7 +53,7 @@ var FiniteEC = function (a, b, r, w, h) {
 		return subGrp;
 	}
 
-	// tobe updated
+	// tobe updated, temporirily set
 	this.getGPoint = function() {
 		for (let i=0; i<this.points.length; i++){
 			const sg = this.getSubGroup(this.points[i]);
@@ -62,6 +62,7 @@ var FiniteEC = function (a, b, r, w, h) {
 		return null;
 	}
 
+	/// y2 = x3+x+7 (mod 487)
 	this.sign = function(m, dA) {
 		const G = this.getGPoint();
 		if (G == null) return null;
@@ -84,13 +85,18 @@ var FiniteEC = function (a, b, r, w, h) {
 		const y2 = (r*r*r + this.a*r + this.b) % this.r;
 		let y1;
 		for (let i=0; i< this.r; i++){
-			if ((i*i % this.r) == y2) y=i;
-		}
+			if ((i*i % this.r) == y2) {
+      			y1=i;
+        		break;
+      		}
+		}   
+
 		const R = {x: x1, y:y1};
 		const n = this.points.length + 1;
 		const z = m % n;	
-		const u1 = (n -(-z * this.inverse(r, n))) % n;
-		const u2 = s * this.inverse(r, n);
+		const u1 = (n - z * this.inverse(r, n)) % n;
+		const u2 = (s * this.inverse(r, n)) % n;
+    
 		const u1G = this.mul(G, u1);
 		const u2R = this.mul(R, u2);
 		const QA = this.add(u1G, u2R);
@@ -103,8 +109,8 @@ var FiniteEC = function (a, b, r, w, h) {
 		const QA = this.recoverPK(m,r,s);
 		const n = this.points.length + 1;
 		const z = m % n;
-		const u1 = z*this.inverse(s, n);
-		const u2 = r * this.inverse(s, n);
+		const u1 = (z * this.inverse(s, n))%n;
+		const u2 = (r * this.inverse(s, n))%n;
 		const u1G = this.mul(G, u1);
 		const u2QA = this.mul(QA, u2);
 		const S = this.add(u1G, u2QA);
