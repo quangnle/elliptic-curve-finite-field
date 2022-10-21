@@ -94,8 +94,8 @@ var FiniteEC = function (a, b, r, w, h) {
 		const R = {x: x1, y:y1};
 		const n = this.points.length + 1;
 		const z = m % n;	
-		const u1 = (n - z * this.inverse(r, n)) % n;
-		const u2 = (s * this.inverse(r, n)) % n;
+		const u1 = (((n - z) % n) * this.inverse(r, n)) % n; //-zr^-1
+		const u2 = (s * this.inverse(r, n)) % n; // sr^-1
     
 		const u1G = this.mul(G, u1);
 		const u2R = this.mul(R, u2);
