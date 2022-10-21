@@ -72,41 +72,13 @@ var FiniteEC = function (a, b, r, w, h) {
 			const k = Math.floor(Math.random() * (n-2)) + 1;
 			const kG = this.mul(G, k);
 			if (kG.x == 0) continue;
-			const r = kG.x;
+			const r = kG.x % n;
 			const s = (this.inverse(k, n)*(z + r*dA)) % n;
 			if (s != 0) return {r, s};
 		} while(true);
 	}
 
-	this.recoverPK = function(m,r,s) {
-		const G = this.getGPoint();
-		if (G == null) return null;
-		const x1 = r;
-		const y2 = (r*r*r + this.a*r + this.b) % this.r;
-		let y1;
-		for (let i=0; i< this.r; i++){
-			if ((i*i % this.r) == y2) {
-      			y1=i;
-        		break;
-      		}
-		}   
-
-		const R = {x: x1, y:y1};
-		const n = this.points.length + 1;
-		const z = m % n;	
-		const u1 = (((n - z) % n) * this.inverse(r, n)) % n; //-zr^-1
-		const u2 = (s * this.inverse(r, n)) % n; // sr^-1
-    
-		const u1G = this.mul(G, u1);
-		const u2R = this.mul(R, u2);
-		const QA = this.add(u1G, u2R);
-		return QA;
-	}
-
-	this.verify = function (m,r,s) {
-		const G = this.getGPoint();
-		if (G == null) return null;
-		const QA = this.recoverPK(m,r,s);
+	this.verify = function (m, r, s, G, QA) {
 		const n = this.points.length + 1;
 		const z = m % n;
 		const u1 = (z * this.inverse(s, n))%n;
@@ -114,7 +86,7 @@ var FiniteEC = function (a, b, r, w, h) {
 		const u1G = this.mul(G, u1);
 		const u2QA = this.mul(QA, u2);
 		const S = this.add(u1G, u2QA);
-		return r == S.x;
+		return r == S.x % n;
 	}
 	
 	this.draw = function() {
