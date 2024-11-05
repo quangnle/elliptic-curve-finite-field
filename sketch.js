@@ -23,6 +23,9 @@ function mouseClicked() {
       
     });
     sgInp.value = st;
+    
+    const gTag = document.getElementById("g");
+    gTag.innerHTML = `G(${ec.points[ec.selectedIndex].x},${ec.points[ec.selectedIndex].y})`;
   }
 }
 

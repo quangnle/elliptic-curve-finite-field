@@ -1,6 +1,8 @@
 <html>
 	<head>
-		<script src="p5lib/p5.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+		
+		
 		<script src="finite_ec.js"></script>
 		<script src="sketch.js"></script>
 		<script>
@@ -10,25 +12,29 @@
 		function drawClick(){
 			const a = +document.getElementById("inpA").value;
 			const b = +document.getElementById("inpB").value;
-			const r = +document.getElementById("inpR").value;
-
-			ec= new FiniteEC(a,b,r,w,h);
+			const r = +document.getElementById("inpR").value;			
+			
+			ec = new FiniteEC(a,b,r,w,h);
 		}
 		</script>	
 	</head>
 	<body>
 		<div>
-			<p>Elliptic Curve equation: y^2 = x^3 + ax + b (mod r, with r is a prime number)</p>
-			<input id="inpA" value="1" placeholder="a" />	
-			<input id="inpB" value="7" placeholder="b" />
-			<input id="inpR" value="83" placeholder="r" />
+			<p>Elliptic Curve equation: \(y^2 = x^3 + ax + b (\mod r) \) (mod r, with r is a prime number)</p>
+			\(a=\) <input id="inpA" value="1" placeholder="a" />	
+			\(b=\) <input id="inpB" value="7" placeholder="b" />
+			\(r=\) <input id="inpR" value="83" placeholder="r" />
 			<button onClick="drawClick()">Draw</button>
 		</div>
 		<div>
+			<p>Generator point <span id="g">\(G(x,y)\)</span> <i>--- click on a point to see all points</i></p>
 			<textarea id="inpSG" readonly style="width:800px">
 			</textarea>
 		</div>
 		<div id="sketch-holder" style="width: 50%; float: left">
 		</div>
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.0.0/math.js"></script>    
+		<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 	</body>
 </html>
