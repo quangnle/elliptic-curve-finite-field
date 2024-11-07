@@ -13,14 +13,13 @@ function mouseClicked() {
   if (ec.selectedIndex != -1) {
     const sgInp = document.getElementById("inpSG");
     const sg = ec.getSubGroup(ec.points[ec.selectedIndex]);
-    let st = `[${sg.length}]: `;
-    sg.forEach(_ => {
+    let st = `[Order of the sub-group = ${sg.length}]:\n`;
+    sg.forEach((_, idx) => {
       if (isNaN(_.x) && isNaN(_.y)) {
-        st += "O";
+      st += `G x ${idx + 1} = O`;
       } else {
-        st += `(${_.x},${_.y}) => `
+      st += `G x ${idx + 1} = (${_.x},${_.y}) => `;
       }
-      
     });
     sgInp.value = st;
     
